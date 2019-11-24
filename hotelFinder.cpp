@@ -48,7 +48,7 @@ class HashMap
 			long ascSum = 0;
 			for(int i = 0; i < key.length(); i++) {
 				//cout << int(key.at(i)) << endl;
-				if(int(key.at(i)) <= 127 && int(key.at(i)) >= 0) {
+				if(int(key.at(i)) <= 127 && int(key.at(i)) >= 0) { // Ignore any funky characters - the hash will still work
 					ascSum += int(key.at(i)) * pow(i, 2);
 				}
 				else {
@@ -109,6 +109,31 @@ class HashMap
 		}
 };
 
+bool isPrime(long number) { // Checks whether number is a prime through the square root primality test
+	if(number <= 2) {
+		return false;
+	}
+	else {
+		for(int i = 2; i <= sqrt(number); i++) {
+			if(number % i == 0) {
+				return false;
+			}
+		}
+		return true;
+	}
+}
+
+long nearestPrime(long lineCount) { // Finds the nearest larger prime to a number
+	long tableSize = lineCount*1.333;
+	while(true) {
+		if(!isPrime(tableSize)) {
+			tableSize++;
+		}
+		else {
+			return tableSize;
+		}
+	}
+}
 
 int main(void)
 {
@@ -120,7 +145,18 @@ int main(void)
 	}
 
 	string line;
-	HashMap myHashMap(25847); //A prime number bigger than the number of elements (19880*1.3333=25844);
+	long lineCount = 0;
+
+	getline(fin,line);
+	while(!fin.eof()) { // Gets number of entry lines; used when calculating hash table size
+		getline(fin,line);
+		lineCount++;
+	}
+
+    fin.seekg (0, fin.beg); // Reset file iterator to the top
+
+	long tableSize = nearestPrime(lineCount); // Calculate hash table size
+	HashMap myHashMap(tableSize);
 	getline(fin,line);  //skip first line
 	while(!fin.eof())
 	{
@@ -132,6 +168,8 @@ int main(void)
 
 	}
 	fin.close();
+    cout << lineCount << endl;
+   	cout << tableSize << endl;
 
 	cout<<"Hash Map size = "<<myHashMap.getSize()<<endl;
 
