@@ -3,16 +3,26 @@
 #include<cmath>
 
 using namespace std;
+
+struct Hotel {
+	string name;
+	string city;
+	string rating;
+	string price;
+	string country;
+	string address;
+};
+
 class HashNode
 {
 	private:
 		string key;
-		string value;
+		Hotel value;
 	public:
-		HashNode(string key, string value)
+		HashNode(string key, Hotel value)
 		{
 			this->key = key;
-			this->value = value;
+			this->value = Hotel{value.name, value.city, value.rating, value.price, value.country, value.address};
 		}
 		string getKey()
 		{
@@ -20,11 +30,8 @@ class HashNode
 		}
 		string getValue()
 		{
-			return this->value;
-		}
-		void setValue(string value)
-		{
-			this->value = value;
+			string content = "Name: " + this->value.name + '\n' + "City: " + this->value.city + '\n' + "Rating: " + this->value.rating + '\n' + "Price: " + this->value.price + '\n' + "Country: " + this->value.country + '\n' + "Address: " + this->value.address;
+			return content;
 		}
 
 };
@@ -59,7 +66,7 @@ class HashMap
 			return ascSum % capacity;
 		}
 		
-		void insert(const string key, const string value)
+		void insert(const string key, const Hotel value)
 		{
 			// Insert the key and value in Hash Map using Open Addressing Linear Probing
 			long hash = hashCode(key);
@@ -135,6 +142,7 @@ long nearestPrime(long lineCount) { // Finds the nearest larger prime to a numbe
 	}
 }
 
+
 int main(void)
 {
 	ifstream fin;
@@ -160,10 +168,16 @@ int main(void)
 	getline(fin,line);  //skip first line
 	while(!fin.eof())
 	{
-		string key, value;
-		getline(fin,key, ',');
-		getline(fin,value);
-		cout<<key<<":"<<value<<endl;
+		string hotelName, cityName, stars, price, countryName, address;
+		getline(fin,hotelName, ',');
+		getline(fin,cityName, ',');
+		getline(fin,stars, ',');
+		getline(fin,price, ',');
+		getline(fin,countryName, ',');
+		getline(fin,address);
+		string key = hotelName + ',' + cityName;
+		Hotel value = {hotelName, cityName, stars, price, countryName, address};
+		//cout<<key<<":"<<value<<endl;
 		myHashMap.insert(key,value);
 
 	}
