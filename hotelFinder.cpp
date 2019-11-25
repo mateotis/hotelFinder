@@ -4,13 +4,34 @@
 
 using namespace std;
 
-struct Hotel {
-	string name;
-	string city;
-	string rating;
-	string price;
-	string country;
-	string address;
+class Hotel {
+	private:
+		string name;
+		string city;
+		string rating;
+		string price;
+		string country;
+		string address;
+	public:
+		Hotel() : name(""),city(""),rating(""),price(""),country(""),address("") {} // Dummy initialiser to get the HashNode initialisation working
+		Hotel(string entry) { // Constructs the Hotel object by breaking down the input string into the variables
+			this->name = entry.substr(0,entry.find(',')); // The variables are separated by commas
+			entry.erase(0,entry.find(',') + 1);
+			this->city = entry.substr(0,entry.find(','));
+			entry.erase(0,entry.find(',') + 1);
+			this->rating = entry.substr(0,entry.find(','));
+			entry.erase(0,entry.find(',') + 1);
+			this->price = entry.substr(0,entry.find(','));
+			entry.erase(0,entry.find(',') + 1);
+			this->country = entry.substr(0,entry.find(','));
+			entry.erase(0,entry.find(',') + 1);
+			this->address = entry.substr(0,entry.find(','));
+			entry.erase(0,entry.find(',') + 1);
+		}
+		string getEntry() {
+			string content = "Name: " + name + '\n' + "City: " + city + '\n' + "Rating: " + rating + '\n' + "Price: " + price + '\n' + "Country: " + country + '\n' + "Address: " + address;
+			return content;
+		}
 };
 
 class HashNode
@@ -19,10 +40,11 @@ class HashNode
 		string key;
 		Hotel value;
 	public:
-		HashNode(string key, Hotel value)
+		HashNode(string key, string value)
 		{
 			this->key = key;
-			this->value = Hotel{value.name, value.city, value.rating, value.price, value.country, value.address};
+			Hotel h(value);
+			this->value = h;
 		}
 		string getKey()
 		{
@@ -30,7 +52,8 @@ class HashNode
 		}
 		string getValue()
 		{
-			string content = "Name: " + this->value.name + '\n' + "City: " + this->value.city + '\n' + "Rating: " + this->value.rating + '\n' + "Price: " + this->value.price + '\n' + "Country: " + this->value.country + '\n' + "Address: " + this->value.address;
+			//string content = "Name: " + this->value.name + '\n' + "City: " + this->value.city + '\n' + "Rating: " + this->value.rating + '\n' + "Price: " + this->value.price + '\n' + "Country: " + this->value.country + '\n' + "Address: " + this->value.address;
+			string content = this->value.getEntry();
 			return content;
 		}
 
@@ -66,7 +89,7 @@ class HashMap
 			return ascSum % capacity;
 		}
 		
-		void insert(const string key, const Hotel value)
+		void insert(const string key, const string value)
 		{
 			// Insert the key and value in Hash Map using Open Addressing Linear Probing
 			long hash = hashCode(key);
@@ -82,7 +105,7 @@ class HashMap
 
 		}
 
-		string search(const string key)
+		string find(const string key)
 		{
 			// Search for a key in HashMap and return its value
 			long hash = hashCode(key);
@@ -103,6 +126,30 @@ class HashMap
 				}	
 			}
 			return "Hotel not found!";
+		}
+
+		string remove(const string key) {
+			long hash = hashCode(key);
+			int count = 0;
+			while(nodeArray[hash] != nullptr) {
+				count++;
+				if(nodeArray[hash]->getKey() == key) {
+					cout << endl << "Comparisons made: " << count << endl;
+					delete nodeArray[hash];
+					nodeArray[hash] = NULL; // To make sure the space is freed
+					size--;
+					return "Deleted " + key;
+				}
+				else {
+					if(hash < capacity) {
+						hash++;
+					}
+					else {
+						return "Deletion failed. Hotel not found.";
+					}
+				}	
+			}
+			return "Deletion failed. Hotel not found.";			
 		}
 
 		int getSize()
@@ -164,39 +211,78 @@ int main(void)
     fin.seekg (0, fin.beg); // Reset file iterator to the top
 
 	long tableSize = nearestPrime(lineCount); // Calculate hash table size
-	HashMap myHashMap(tableSize);
+	HashMap hotelTable(tableSize);
 	getline(fin,line);  //skip first line
 	while(!fin.eof())
 	{
-		string hotelName, cityName, stars, price, countryName, address;
+		string hotelName, cityName, key, value;
 		getline(fin,hotelName, ',');
 		getline(fin,cityName, ',');
-		getline(fin,stars, ',');
-		getline(fin,price, ',');
-		getline(fin,countryName, ',');
-		getline(fin,address);
-		string key = hotelName + ',' + cityName;
-		Hotel value = {hotelName, cityName, stars, price, countryName, address};
+		getline(fin,value);
+		key = hotelName + ',' + cityName;
+		value = key + ',' + value;
 		//cout<<key<<":"<<value<<endl;
-		myHashMap.insert(key,value);
+		hotelTable.insert(key,value);
 
 	}
 	fin.close();
     cout << lineCount << endl;
    	cout << tableSize << endl;
 
-	cout<<"Hash Map size = "<<myHashMap.getSize()<<endl;
+	cout<<"Hash Map size = "<<hotelTable.getSize()<<endl;
 
-	string choice;
+	string input;
 	while(true)
 	{
-		cout<<"Enter Hotel Name:";
-		getline(cin,choice);
-		//cout << myHashMap.hashCode(choice) << endl;
-		if (choice == "exit")
+		cout<<"Enter command: ";
+		getline(cin,input);
+		string command, param;
+		if(input == "quit") {
 			break;
+		}
+		else if(input.find(' ') == string::npos) {
+			cerr << "Invalid command." << endl;
+			continue;
+		}
+		else {
+			command = input.substr(0, input.find(' ')); // First word is the command
+			param = input.substr(command.length() + 1, input.length() - command.length()); // Second word is the parameter			
+		}
+
+		if(command == "find") {
+			cout << hotelTable.find(param) << endl;
+			cout << param << endl;
+		}
+		else if(command == "add") {
+			string hotelName = param.substr(0,param.find(','));
+			param.erase(0,param.find(',') + 1);
+			string cityName = param.substr(0,param.find(','));
+			param.erase(0,param.find(',') + 1);
+			string key = hotelName + ',' + cityName;
+			string value = key + ',' + param;
+			hotelTable.insert(key,value);
+			cout << key << " inserted." << endl;
+		}
+		else if(command == "delete") {
+			string hotelName = param.substr(0,param.find(','));
+			param.erase(0,param.find(',') + 1);
+			string cityName = param.substr(0,param.find(','));
+			param.erase(0,param.find(',') + 1);
+			string key = hotelName + ',' + cityName;
+			cout << hotelTable.remove(key) << endl;
+		}
+		else if(command == "dump") {
+			//TODO
+		}
+		else if(command == "allinCity") {
+			//TODO
+		}
+		else {
+			cerr << "Invalid command." << endl;
+		}
 		
-		cout<<"Information for "<<choice<<" is: "<<myHashMap.search(choice)<<endl;
+		//cout<<"Information for "<<input<<" is: "<<hotelTable.insert(input)<<endl;
+		//cout << hotelTable.remove(input) << endl;
 	}
 	exit(0);
 }
