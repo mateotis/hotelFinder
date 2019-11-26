@@ -1,6 +1,9 @@
 #include<iostream>
 #include<fstream>
+#include<vector>
 #include<cmath>
+#include<algorithm>
+#include<chrono>
 
 using namespace std;
 
@@ -29,7 +32,8 @@ class Hotel {
 			entry.erase(0,entry.find(',') + 1);
 		}
 		string getEntry() {
-			string content = "Name: " + name + '\n' + "City: " + city + '\n' + "Rating: " + rating + '\n' + "Price: " + price + '\n' + "Country: " + country + '\n' + "Address: " + address;
+			//string content = "Name: " + name + '\n' + "City: " + city + '\n' + "Rating: " + rating + '\n' + "Price: " + price + '\n' + "Country: " + country + '\n' + "Address: " + address;
+			string content = name+','+city+','+rating+','+price+','+country+','+address ;
 			return content;
 		}
 };
@@ -94,13 +98,25 @@ class HashMap
 			// Insert the key and value in Hash Map using Open Addressing Linear Probing
 			long hash = hashCode(key);
 			while(true) {
-				if(nodeArray[hash] == nullptr) {
-					//cout << "Inserting " << key << " at " << hash << endl;
+				if(nodeArray[hash] == nullptr) { // If we have an empty space, put the node there
+					cout << "Inserting " << key << " at " << hash << endl;
+					//cout << "Data to be inserted: " << value << endl;
 					nodeArray[hash] = new HashNode(key, value);
 					size++;
-					break;
+					//cout << "Inserted " << key << endl;
+					return;
 				}
-				else { hash++; }	
+				else if(nodeArray[hash]->getKey() == key) { // If we run into an entry with the same key, then we don't need to add it again
+					cerr << key << " already in database." << endl;
+					return;
+				}
+				else { 
+					hash++;
+					if(hash >= capacity) {
+						cout << "No place in array for element " << key << endl;
+						return;
+					}
+				}	
 			}
 
 		}
@@ -128,7 +144,7 @@ class HashMap
 			return "Hotel not found!";
 		}
 
-		string remove(const string key) {
+		void remove(const string key) {
 			long hash = hashCode(key);
 			int count = 0;
 			while(nodeArray[hash] != nullptr) {
@@ -138,18 +154,44 @@ class HashMap
 					delete nodeArray[hash];
 					nodeArray[hash] = NULL; // To make sure the space is freed
 					size--;
-					return "Deleted " + key;
+					cout << "Deleted " + key << endl;
+					return;
 				}
 				else {
 					if(hash < capacity) {
 						hash++;
 					}
 					else {
-						return "Deletion failed. Hotel not found.";
+						cerr << "Deletion failed. Hotel not found." << endl;
 					}
 				}	
 			}
-			return "Deletion failed. Hotel not found.";			
+			cerr << "Deletion failed. Hotel not found." << endl;			
+		}
+
+		void dump(string fileName, long tableSize) {
+			vector<string> values;
+			for(int i = 0; i < tableSize; i++) {
+				if(nodeArray[i] != nullptr) {
+					string value = nodeArray[i]->getValue();
+					values.push_back(value);
+				}
+			}
+			sort(values.begin(), values.end());
+			ofstream fout;
+			fout.open(fileName);
+			if(!fout){
+				cerr << "Error: File could not be opened." << endl;
+				return;
+			}
+			int count = 0;
+			for(int j = 0; j < values.size(); j++) {
+				fout << values.at(j) << '\n';
+				count++;
+				//cout << values.at(j) << endl;
+			}
+			fout.close();
+			cout << "Sorted and dumped database into " << fileName << endl;
 		}
 
 		int getSize()
@@ -189,11 +231,20 @@ long nearestPrime(long lineCount) { // Finds the nearest larger prime to a numbe
 	}
 }
 
+string keyMaker(string param) {
+	string hotelName = param.substr(0,param.find(','));
+	param.erase(0,param.find(',') + 1);
+	string cityName = param.substr(0,param.find(','));
+	param.erase(0,param.find(',') + 1);
+	string key = hotelName + ',' + cityName;
+	return key;
+}
+
 
 int main(void)
 {
 	ifstream fin;
-	fin.open("hotels10k.csv");
+	fin.open("hotels100k.csv");
 	if(!fin){
 		cout<<"Can not open the file...!";
 		exit(-1);
@@ -208,7 +259,7 @@ int main(void)
 		lineCount++;
 	}
 
-    fin.seekg (0, fin.beg); // Reset file iterator to the top
+    fin.seekg(0, fin.beg); // Reset file iterator to the top
 
 	long tableSize = nearestPrime(lineCount); // Calculate hash table size
 	HashMap hotelTable(tableSize);
@@ -226,10 +277,12 @@ int main(void)
 
 	}
 	fin.close();
-    cout << lineCount << endl;
-   	cout << tableSize << endl;
+    //cout << lineCount << endl;
+   	//cout << tableSize << endl;
 
 	cout<<"Hash Map size = "<<hotelTable.getSize()<<endl;
+
+	//hotelTable.dump("sortedList.txt", tableSize);
 
 	string input;
 	while(true)
@@ -250,29 +303,28 @@ int main(void)
 		}
 
 		if(command == "find") {
+			auto start = chrono::high_resolution_clock::now(); // Records time with the most accurate clock available
 			cout << hotelTable.find(param) << endl;
-			cout << param << endl;
+			auto stop = chrono::high_resolution_clock::now();
+			auto duration = chrono::duration_cast<chrono::milliseconds>(stop - start); // Converts recorded time to ms
+			cout << "Time taken: " << duration.count() << " ms" << endl;
+			//cout << param << endl;
 		}
 		else if(command == "add") {
-			string hotelName = param.substr(0,param.find(','));
-			param.erase(0,param.find(',') + 1);
-			string cityName = param.substr(0,param.find(','));
-			param.erase(0,param.find(',') + 1);
-			string key = hotelName + ',' + cityName;
-			string value = key + ',' + param;
-			hotelTable.insert(key,value);
-			cout << key << " inserted." << endl;
+			string key = keyMaker(param);
+			//string value = key + ',' + param;
+			hotelTable.insert(key,param);
 		}
 		else if(command == "delete") {
-			string hotelName = param.substr(0,param.find(','));
-			param.erase(0,param.find(',') + 1);
-			string cityName = param.substr(0,param.find(','));
-			param.erase(0,param.find(',') + 1);
-			string key = hotelName + ',' + cityName;
-			cout << hotelTable.remove(key) << endl;
+			string key = keyMaker(param);
+			hotelTable.remove(key);
 		}
 		else if(command == "dump") {
-			//TODO
+			auto start = chrono::high_resolution_clock::now(); // Records time with the most accurate clock available
+			hotelTable.dump(param, tableSize);
+			auto stop = chrono::high_resolution_clock::now();
+			auto duration = chrono::duration_cast<chrono::milliseconds>(stop - start); // Converts recorded time to ms
+			cout << "Time taken: " << duration.count() << " ms" << endl;
 		}
 		else if(command == "allinCity") {
 			//TODO
