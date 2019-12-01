@@ -9,6 +9,43 @@
 
 using namespace std;
 
+
+bool isPrime(long number) { // Checks whether number is a prime through the square root primality test
+	if(number <= 2) {
+		return false;
+	}
+	else {
+		for(int i = 2; i <= sqrt(number); i++) {
+			if(number % i == 0) {
+				return false;
+			}
+		}
+		return true;
+	}
+}
+
+long nearestPrime(long lineCount) { // Finds the nearest larger prime to a number
+	long tableSize = lineCount*1.333;
+	while(true) {
+		if(!isPrime(tableSize)) {
+			tableSize++;
+		}
+		else {
+			return tableSize;
+		}
+	}
+}
+
+vector<string> keyMaker(string param) {
+	string hotelName = param.substr(0,param.find(','));
+	param.erase(0,param.find(',') + 1);
+	string cityName = param.substr(0,param.find(','));
+	param.erase(0,param.find(',') + 1);
+	string key = hotelName + ',' + cityName;
+	vector<string> keys{hotelName, cityName}; // Storing the two keys we need (hotel+city and city) in a vector
+	return keys;
+}
+
 class Hotel {
 	private:
 		string name;
@@ -37,6 +74,12 @@ class Hotel {
 			//string content = "Name: " + name + '\n' + "City: " + city + '\n' + "Rating: " + rating + '\n' + "Price: " + price + '\n' + "Country: " + country + '\n' + "Address: " + address;
 			string content = name + ',' + city + ',' + rating + ',' + price + ',' + country + ',' + address;
 			return content;
+		}
+		string getName() {
+			return name;
+		}
+		bool operator==(const Hotel& h) { // Overloaded == to make STL list remove() work 
+			return name == h.name && city == h.city;
 		}
 };
 
@@ -77,11 +120,22 @@ class HashNode
 			city.push_back(h);
 			//cout << "Added hotel " << h.getEntry() << " to list." << endl;
 		}
+		void listRemove(string name) {
+			for(auto it = city.begin(); it != city.end(); ++it) {
+				cout << "in list remove iteration looking at " << it->getName() << endl;
+				cout << "looking for " << name << endl;
+				if(it->getName() == name) {
+					city.erase(it);
+					cout << "Removed " << name << " from city table." << endl;
+					break;
+				}
+			}			
+		}
 		void listPrint() {
-			cout << "Size of list: " << city.size() << endl;
-			for(auto v : city) {
-				cout << v.getEntry() << "\n";
+			for(auto c : city) {
+				cout << c.getEntry() << "\n";
 			}
+			cout << "Number of hotels in city: " << city.size() << endl;
 		}
 
 };
@@ -182,6 +236,8 @@ class HashMap
 				count++;
 				if(nodeArray[hash]->getKey() == key) {
 					cout << endl << "Comparisons made: " << count << endl;
+					
+					//cityTable.remove(key);
 					delete nodeArray[hash];
 					nodeArray[hash] = NULL; // To make sure the space is freed
 					size--;
@@ -255,6 +311,7 @@ class CityMap: public HashMap {
 			// Insert the key and value in Hash Map using linked lists
 			long hash = hashCode(key);
 			long ogHash = hash;
+			cout << key << " : " << hash << endl;
 
 			while(true) {
 				if(nodeArray[hash] == nullptr) { // If we have an empty space, put the node there
@@ -266,7 +323,7 @@ class CityMap: public HashMap {
 					//cout << "Inserted " << key << endl;
 					return;
 				}
-				else if(nodeArray[hash]->getKey() == key) { // If we run into an entry with the same key, then we don't need to add it again
+				else if(nodeArray[hash]->getKey() == key) { // If it's not a nullptr, then there must already be a list of hotels there--we have to check if it's the same city, not just the same hash
 					Hotel h(value);
 					nodeArray[hash]->listAdd(h);
 					size++;
@@ -311,6 +368,34 @@ class CityMap: public HashMap {
 			}
 			return "City not found!";
 		}
+		void remove(const string key) {
+			vector<string> keys = keyMaker(key);
+			//string cityName = key.substr(key.find(',') + 1, key.end());
+			long hash = hashCode(keys.at(1));
+			int count = 0;
+			cout << keys.at(0) << " AND " << keys.at(1) << endl;
+			while(nodeArray[hash] != nullptr) {
+				cout << "In remove loop" << endl;
+				count++;
+				if(nodeArray[hash]->getKey() == keys.at(1)) {
+					cout << "Found matching list" << endl;
+					nodeArray[hash]->listRemove(keys.at(0));
+					cout << endl << "Comparisons made: " << count << endl;
+					size--;
+					cout << "Deleted " + keys.at(0) << endl;
+					return;
+				}
+				else {
+					if(hash < capacity) {
+						hash++;
+					}
+					else {
+						cerr << "Deletion failed. Hotel not found." << endl;
+					}
+				}	
+			}
+			cerr << "Deletion failed. Hotel not found." << endl;			
+		}
 		int getSize()
 		{
 			return this->size;
@@ -318,46 +403,11 @@ class CityMap: public HashMap {
 
 };
 
-bool isPrime(long number) { // Checks whether number is a prime through the square root primality test
-	if(number <= 2) {
-		return false;
-	}
-	else {
-		for(int i = 2; i <= sqrt(number); i++) {
-			if(number % i == 0) {
-				return false;
-			}
-		}
-		return true;
-	}
-}
-
-long nearestPrime(long lineCount) { // Finds the nearest larger prime to a number
-	long tableSize = lineCount*1.333;
-	while(true) {
-		if(!isPrime(tableSize)) {
-			tableSize++;
-		}
-		else {
-			return tableSize;
-		}
-	}
-}
-
-string keyMaker(string param) {
-	string hotelName = param.substr(0,param.find(','));
-	param.erase(0,param.find(',') + 1);
-	string cityName = param.substr(0,param.find(','));
-	param.erase(0,param.find(',') + 1);
-	string key = hotelName + ',' + cityName;
-	return key;
-}
-
 
 int main(void)
 {
 	ifstream fin;
-	fin.open("hotels100k.csv");
+	fin.open("hotels1k.csv");
 	if(!fin){
 		cout<<"Can not open the file...!";
 		exit(-1);
@@ -390,7 +440,7 @@ int main(void)
 		value = hotelCityKey + ',' + value;
 		//cout<<key<<":"<<value<<endl;
 		//cout << endl << "before main insert" << endl;
-		//hotelTable.insert(hotelCityKey,value, increment);
+		hotelTable.insert(hotelCityKey,value, increment);
 		//cout << endl << "between main insert" << endl;
 		cityTable.insert(cityName,value,incrementCity);
 		//cout << endl << "after main insert" << endl;
@@ -433,14 +483,18 @@ int main(void)
 			//cout << param << endl;
 		}
 		else if(command == "add") {
-			string key = keyMaker(param);
+			vector<string> keys = keyMaker(param);
 			//string value = key + ',' + param;
 			int increment = 0;
-			hotelTable.insert(key,param,increment);
+			int incrementCity = 0;
+			string hotelCityKey = keys.at(0) + ',' + keys.at(1);
+			hotelTable.insert(hotelCityKey,param,increment);
+			cityTable.insert(keys.at(1),param,incrementCity);
 		}
 		else if(command == "delete") {
-			string key = keyMaker(param);
-			hotelTable.remove(key);
+			//vector<string> keys = keyMaker(param);
+			hotelTable.remove(param);
+			cityTable.remove(param);
 		}
 		else if(command == "dump") {
 			auto start = chrono::high_resolution_clock::now(); // Records time with the most accurate clock available
