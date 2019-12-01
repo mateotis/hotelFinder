@@ -4,6 +4,8 @@
 #include<cmath>
 #include<algorithm>
 #include<chrono>
+#include<functional>
+#include<list>
 
 using namespace std;
 
@@ -33,7 +35,7 @@ class Hotel {
 		}
 		string getEntry() {
 			//string content = "Name: " + name + '\n' + "City: " + city + '\n' + "Rating: " + rating + '\n' + "Price: " + price + '\n' + "Country: " + country + '\n' + "Address: " + address;
-			string content = name+','+city+','+rating+','+price+','+country+','+address ;
+			string content = name + ',' + city + ',' + rating + ',' + price + ',' + country + ',' + address;
 			return content;
 		}
 };
@@ -43,12 +45,23 @@ class HashNode
 	private:
 		string key;
 		Hotel value;
+		list<Hotel> city;
+
 	public:
-		HashNode(string key, string value)
+		HashNode(string key, string value) // Node for the regular hash table
 		{
 			this->key = key;
 			Hotel h(value);
 			this->value = h;
+		}
+		HashNode(string key, string value, list<Hotel> city) { // Node for the city table, its value is a list of hotels in a city
+			this->key = key;
+			Hotel h(value);
+			this->city = city;
+			this->city.push_back(h);
+			//numCities++;
+			//cout << "Number of cities: " << numCities << endl;
+			//this->value = city;
 		}
 		string getKey()
 		{
@@ -59,6 +72,16 @@ class HashNode
 			//string content = "Name: " + this->value.name + '\n' + "City: " + this->value.city + '\n' + "Rating: " + this->value.rating + '\n' + "Price: " + this->value.price + '\n' + "Country: " + this->value.country + '\n' + "Address: " + this->value.address;
 			string content = this->value.getEntry();
 			return content;
+		}
+		void listAdd(Hotel h) {
+			city.push_back(h);
+			//cout << "Added hotel " << h.getEntry() << " to list." << endl;
+		}
+		void listPrint() {
+			cout << "Size of list: " << city.size() << endl;
+			for(auto v : city) {
+				cout << v.getEntry() << "\n";
+			}
 		}
 
 };
@@ -86,20 +109,23 @@ class HashMap
 					ascSum += int(key.at(i)) * pow(i, 2);
 				}
 				else {
-					continue;
+					ascSum += 37;
 				}
 			}
 
+			//cout << ascSum % capacity << endl;
+			//cout << capacity << endl;
 			return ascSum % capacity;
 		}
 		
-		void insert(const string key, const string value)
+		void insert(const string key, const string value, int& increment)
 		{
 			// Insert the key and value in Hash Map using Open Addressing Linear Probing
 			long hash = hashCode(key);
+			long ogHash = hash;
 			while(true) {
 				if(nodeArray[hash] == nullptr) { // If we have an empty space, put the node there
-					cout << "Inserting " << key << " at " << hash << endl;
+					//cout << "Inserting " << key << " at " << hash << endl;
 					//cout << "Data to be inserted: " << value << endl;
 					nodeArray[hash] = new HashNode(key, value);
 					size++;
@@ -107,10 +133,15 @@ class HashMap
 					return;
 				}
 				else if(nodeArray[hash]->getKey() == key) { // If we run into an entry with the same key, then we don't need to add it again
-					cerr << key << " already in database." << endl;
+					//cerr << key << " already in database." << endl;
 					return;
 				}
 				else { 
+					if(hash == ogHash) {
+						increment++;
+						//cout << key << " can't be put at " << hash << endl;
+					}
+					
 					hash++;
 					if(hash >= capacity) {
 						cout << "No place in array for element " << key << endl;
@@ -205,6 +236,88 @@ class HashMap
 		}
 };
 
+class CityMap: public HashMap {
+	private:
+		HashNode **nodeArray;		// Array of Pointers to Hash Nodes
+		int size;					//Current Size of HashMap
+		int capacity;				// Total Capacity of HashMap
+
+	public:
+		CityMap(int capacity) : HashMap(capacity)
+		{
+			nodeArray = new HashNode*[capacity];
+			this->capacity = capacity;
+			this->size = 0;
+		} 
+
+		void insert(const string key, const string value, int& increment)
+		{
+			// Insert the key and value in Hash Map using linked lists
+			long hash = hashCode(key);
+			long ogHash = hash;
+
+			while(true) {
+				if(nodeArray[hash] == nullptr) { // If we have an empty space, put the node there
+					//cout << "Inserting " << key << " at " << hash << endl;
+					//cout << "Data to be inserted: " << value << endl;
+					list<Hotel> city;
+					nodeArray[hash] = new HashNode(key, value, city);
+					size++;
+					//cout << "Inserted " << key << endl;
+					return;
+				}
+				else if(nodeArray[hash]->getKey() == key) { // If we run into an entry with the same key, then we don't need to add it again
+					Hotel h(value);
+					nodeArray[hash]->listAdd(h);
+					size++;
+					//cerr << key << " already in database." << endl;
+					return;
+				}
+				else { 
+					if(hash == ogHash) {
+						increment++;
+						//cout << key << " can't be put at " << hash << endl;
+					}
+					
+					hash++;
+					if(hash >= capacity) {
+						cout << "No place in array for element " << key << endl;
+						return;
+					}
+				}	
+			}
+
+		}
+		string find(const string key)
+		{
+			// Search for a key in HashMap and return its value
+			long hash = hashCode(key);
+			int count = 0;
+			while(nodeArray[hash] != nullptr) {
+				count++;
+				if(nodeArray[hash]->getKey() == key) {
+					cout << endl << "Comparisons made: " << count << endl;
+					nodeArray[hash]->listPrint();
+					return key + " found.";
+				}
+				else {
+					if(hash < capacity) {
+						hash++;
+					}
+					else {
+						return "City not found!";
+					}
+				}	
+			}
+			return "City not found!";
+		}
+		int getSize()
+		{
+			return this->size;
+		}
+
+};
+
 bool isPrime(long number) { // Checks whether number is a prime through the square root primality test
 	if(number <= 2) {
 		return false;
@@ -260,27 +373,36 @@ int main(void)
 	}
 
     fin.seekg(0, fin.beg); // Reset file iterator to the top
+    int increment = 0;
+    int incrementCity = 0;
 
 	long tableSize = nearestPrime(lineCount); // Calculate hash table size
 	HashMap hotelTable(tableSize);
+	CityMap cityTable(tableSize);
 	getline(fin,line);  //skip first line
 	while(!fin.eof())
 	{
-		string hotelName, cityName, key, value;
+		string hotelName, cityName, hotelCityKey, value;
 		getline(fin,hotelName, ',');
 		getline(fin,cityName, ',');
 		getline(fin,value);
-		key = hotelName + ',' + cityName;
-		value = key + ',' + value;
+		hotelCityKey = hotelName + ',' + cityName;
+		value = hotelCityKey + ',' + value;
 		//cout<<key<<":"<<value<<endl;
-		hotelTable.insert(key,value);
+		//cout << endl << "before main insert" << endl;
+		//hotelTable.insert(hotelCityKey,value, increment);
+		//cout << endl << "between main insert" << endl;
+		cityTable.insert(cityName,value,incrementCity);
+		//cout << endl << "after main insert" << endl;
 
 	}
 	fin.close();
     //cout << lineCount << endl;
-   	//cout << tableSize << endl;
 
 	cout<<"Hash Map size = "<<hotelTable.getSize()<<endl;
+	cout << "Number of hash increments: " << increment << endl;
+	cout<<"City Map size = "<<cityTable.getSize()<<endl;
+	cout << "Number of hash increments: " << incrementCity << endl;
 
 	//hotelTable.dump("sortedList.txt", tableSize);
 
@@ -313,7 +435,8 @@ int main(void)
 		else if(command == "add") {
 			string key = keyMaker(param);
 			//string value = key + ',' + param;
-			hotelTable.insert(key,param);
+			int increment = 0;
+			hotelTable.insert(key,param,increment);
 		}
 		else if(command == "delete") {
 			string key = keyMaker(param);
@@ -327,7 +450,11 @@ int main(void)
 			cout << "Time taken: " << duration.count() << " ms" << endl;
 		}
 		else if(command == "allinCity") {
-			//TODO
+			auto start = chrono::high_resolution_clock::now(); // Records time with the most accurate clock available
+			cout << cityTable.find(param) << endl;
+			auto stop = chrono::high_resolution_clock::now();
+			auto duration = chrono::duration_cast<chrono::milliseconds>(stop - start); // Converts recorded time to ms
+			cout << "Time taken: " << duration.count() << " ms" << endl;
 		}
 		else {
 			cerr << "Invalid command." << endl;
