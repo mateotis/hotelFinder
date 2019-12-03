@@ -117,6 +117,12 @@ class HashNode
 			return content;
 		}
 		void listAdd(Hotel h) {
+			for(auto it = city.begin(); it != city.end(); ++it) {
+				if(it->getName() == h.getName()) {
+					cerr << h.getName() << " already in city table." << endl;
+					return;
+				}
+			}
 			city.push_back(h);
 			//cout << "Added hotel " << h.getEntry() << " to list." << endl;
 		}
@@ -160,14 +166,15 @@ class HashMap
 			for(int i = 0; i < key.length(); i++) {
 				//cout << int(key.at(i)) << endl;
 				if(int(key.at(i)) <= 127 && int(key.at(i)) >= 0) { // Ignore any funky characters - the hash will still work
-					ascSum += int(key.at(i)) * pow(i, 2);
+					//cout << "ASCII value of character: " << int(key.at(i)) << endl;
+					ascSum += int(key.at(i)) * pow(i+1, 2);
 				}
 				else {
 					ascSum += 37;
 				}
 			}
 
-			//cout << ascSum % capacity << endl;
+			//cout << "Initial hash: " << ascSum % capacity << endl;
 			//cout << capacity << endl;
 			return ascSum % capacity;
 		}
@@ -407,7 +414,7 @@ class CityMap: public HashMap {
 int main(void)
 {
 	ifstream fin;
-	fin.open("hotels1k.csv");
+	fin.open("hotels100k.csv");
 	if(!fin){
 		cout<<"Can not open the file...!";
 		exit(-1);
@@ -488,26 +495,35 @@ int main(void)
 			int increment = 0;
 			int incrementCity = 0;
 			string hotelCityKey = keys.at(0) + ',' + keys.at(1);
+			auto start = chrono::high_resolution_clock::now();
+			cout << hotelCityKey << endl << param << endl;
 			hotelTable.insert(hotelCityKey,param,increment);
 			cityTable.insert(keys.at(1),param,incrementCity);
+			auto stop = chrono::high_resolution_clock::now();
+			auto duration = chrono::duration_cast<chrono::milliseconds>(stop - start);
+			cout << "Time taken: " << duration.count() << " ms" << endl;
 		}
 		else if(command == "delete") {
 			//vector<string> keys = keyMaker(param);
+			auto start = chrono::high_resolution_clock::now();
 			hotelTable.remove(param);
 			cityTable.remove(param);
+			auto stop = chrono::high_resolution_clock::now();
+			auto duration = chrono::duration_cast<chrono::milliseconds>(stop - start);
+			cout << "Time taken: " << duration.count() << " ms" << endl;
 		}
 		else if(command == "dump") {
-			auto start = chrono::high_resolution_clock::now(); // Records time with the most accurate clock available
+			auto start = chrono::high_resolution_clock::now();
 			hotelTable.dump(param, tableSize);
 			auto stop = chrono::high_resolution_clock::now();
-			auto duration = chrono::duration_cast<chrono::milliseconds>(stop - start); // Converts recorded time to ms
+			auto duration = chrono::duration_cast<chrono::milliseconds>(stop - start);
 			cout << "Time taken: " << duration.count() << " ms" << endl;
 		}
 		else if(command == "allinCity") {
-			auto start = chrono::high_resolution_clock::now(); // Records time with the most accurate clock available
+			auto start = chrono::high_resolution_clock::now();
 			cout << cityTable.find(param) << endl;
 			auto stop = chrono::high_resolution_clock::now();
-			auto duration = chrono::duration_cast<chrono::milliseconds>(stop - start); // Converts recorded time to ms
+			auto duration = chrono::duration_cast<chrono::milliseconds>(stop - start);
 			cout << "Time taken: " << duration.count() << " ms" << endl;
 		}
 		else {
