@@ -1,4 +1,5 @@
-#pragma once
+#ifndef HASHMAP_H
+#define HASHMAP_H
 
 #include<iostream>
 #include<string>
@@ -6,7 +7,7 @@
 #include<vector>
 #include<cmath> // For pow()
 
-#include "hotelNode.h"
+#include "hotelFinder.h"
 
 using namespace std;
 
@@ -39,3 +40,5 @@ class HashMap
 			delete[] this->nodeArray;
 		}
 };
+
+#endif

@@ -6,7 +6,6 @@
 
 #include "hashMap.h"
 #include "cityMap.h"
-//#include "hotelNode.h"
 
 using namespace std;
 
@@ -72,25 +71,21 @@ void CityMap::find(const string key) // The main function for allinCity - finds 
 	cerr << "City not found!" << endl;
 }
 
-void CityMap::remove(string key) { // Removal, like finding, has two steps: first we find the city the hotel is in, then we remove it from its list
-	//vector<string> keys = keyMaker(key); // Since we need both hotel and city name separately
-	string hotelName = key.substr(0,key.find(','));
-	key.erase(0,key.find(',') + 1);
-	string cityName = key.substr(0,key.find(','));
-	key.erase(0,key.find(',') + 1);
+void CityMap::remove(const string key) { // Removal, like finding, has two steps: first we find the city the hotel is in, then we remove it from its list
+	vector<string> keys = keyMaker(key); // Since we need both hotel and city name separately
 	//string cityName = key.substr(key.find(',') + 1, key.end());
-	long hash = hashCode(cityName);
+	long hash = hashCode(keys.at(1));
 	int count = 0;
 	//cout << keys.at(0) << " AND " << keys.at(1) << endl;
 	while(nodeArray[hash] != nullptr) {
 		//cout << "In remove loop" << endl;
 		count++;
-		if(nodeArray[hash]->getKey() == cityName) {
+		if(nodeArray[hash]->getKey() == keys.at(1)) {
 			//cout << "Found matching list" << endl;
-			nodeArray[hash]->listRemove(hotelName); // We pass the hotel name to the list remover
+			nodeArray[hash]->listRemove(keys.at(0)); // We pass the hotel name to the list remover
 			cout << "Comparisons made: " << count << endl;
 			size--;
-			cout << "Deleted " + hotelName << endl;
+			cout << "Deleted " + keys.at(0) << endl;
 			if(nodeArray[hash]->listSize() == 0) { // If the city list is now empty, we can delete the whole node
 				delete nodeArray[hash];
 				nodeArray[hash] = NULL;

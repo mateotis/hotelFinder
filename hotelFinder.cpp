@@ -7,11 +7,44 @@
 #include<chrono> // For execution time measurement
 #include<list> // For the list-based implementation of the city table
 
+#include "hotelFinder.h"
 #include "hashMap.h"
 #include "cityMap.h"
-//#include "hotelNode.h"
 
 using namespace std;
+
+// Hash node list methods
+void HashNode::listAdd(Hotel h) { // Add a hotel to a city
+	for(auto it = city.begin(); it != city.end(); ++it) { // Making use of the beautiful auto type introduced in C++11, which automatically determines the right type, to initialise the iterator
+		if(it->getName() == h.getName()) {
+			cerr << h.getName() << " already in city table." << endl;
+			return;
+		}
+	}
+	city.push_back(h);
+	//cout << "Added hotel " << h.getEntry() << " to list." << endl;
+}
+void HashNode::listRemove(string name) { // Remove a hotel from the city table
+	for(auto it = city.begin(); it != city.end(); ++it) {
+		//cout << "in list remove iteration looking at " << it->getName() << endl;
+		//cout << "looking for " << name << endl;
+		if(it->getName() == name) {
+			city.erase(it);
+			cout << "Removed " << name << " from city table." << endl;
+			return;
+		}
+	}
+	cerr << name << " was not found in the city table." << endl;
+}
+void HashNode::listPrint() {
+	for(auto it = city.begin(); it != city.end(); ++it) {
+		cout << it->getEntry() << "\n";
+	}
+	cout << "Number of hotels in city: " << city.size() << endl;
+}
+int HashNode::listSize() {
+	return this->city.size();
+}
 
 
 bool isPrime(long number) { // Checks whether number is a prime through the square root primality test
@@ -49,12 +82,27 @@ vector<string> keyMaker(string param) { // Splits input to hotel and city name a
 	return keys;
 }
 
-int main(void)
+int main(int argc, char* args[])
 {
+
+	string inputFile = "";
+	for(int i = 0; i < argc; i++) {
+		string str(args[i]);
+		if (str == "-f") {
+			string inputFileStr(args[i+1]); // The parameter after -f is the input file name
+			inputFile = inputFileStr; // Since inputFileStr is only valid within the loop
+		}
+	}
+
+	if(inputFile == "") {
+		cerr << "Please specify an input file." << endl;
+		exit(-1);
+	}
+
 	ifstream fin;
-	fin.open("hotels100k.csv");
+	fin.open(inputFile);
 	if(!fin) {
-		cout<< "Error: file could not be opened.";
+		cerr << "Error: file could not be opened." << endl;
 		exit(-1);
 	}
 

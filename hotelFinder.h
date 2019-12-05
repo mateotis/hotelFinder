@@ -1,4 +1,5 @@
-#pragma once
+#ifndef HOTELFINDER_H
+#define HOTELFINDER_H
 
 #include<iostream>
 #include<string>
@@ -70,36 +71,15 @@ class HashNode // Node that, with an extra variable, works with both hash tables
 			string content = this->value.getEntry(); // Passed to the Hotel class
 			return content;
 		}
-		void listAdd(Hotel h) { // Add a hotel to a city
-			for(auto it = city.begin(); it != city.end(); ++it) { // Making use of the beautiful auto type introduced in C++11, which automatically determines the right type, to initialise the iterator
-				if(it->getName() == h.getName()) {
-					cerr << h.getName() << " already in city table." << endl;
-					return;
-				}
-			}
-			city.push_back(h);
-			//cout << "Added hotel " << h.getEntry() << " to list." << endl;
-		}
-		void listRemove(string name) { // Remove a hotel from the city table
-			for(auto it = city.begin(); it != city.end(); ++it) {
-				//cout << "in list remove iteration looking at " << it->getName() << endl;
-				//cout << "looking for " << name << endl;
-				if(it->getName() == name) {
-					city.erase(it);
-					cout << "Removed " << name << " from city table." << endl;
-					return;
-				}
-			}
-			cerr << name << " was not found in the city table." << endl;
-		}
-		void listPrint() {
-			for(auto it = city.begin(); it != city.end(); ++it) {
-				cout << it->getEntry() << "\n";
-			}
-			cout << "Number of hotels in city: " << city.size() << endl;
-		}
-		int listSize() {
-			return this->city.size();
-		}
+		void listAdd(Hotel h);
+		void listRemove(string name);
+		void listPrint();
+		int listSize();
 
 };
+
+bool isPrime(long number);
+long nearestPrime(long lineCount);
+vector<string> keyMaker(string param);
+
+#endif

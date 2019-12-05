@@ -4,7 +4,6 @@
 #include<vector>
 
 #include "hashMap.h"
-//#include "hotelNode.h"
 
 using namespace std;
 

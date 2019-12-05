@@ -1,11 +1,12 @@
-#pragma once
+#ifndef CITYMAP_H
+#define CITYMAP_H
 
 #include<iostream>
 #include<string>
 #include<vector>
 #include<list>
 
-//#include "hotelNode.h"
+#include "hotelFinder.h"
 
 using namespace std;
 
@@ -31,3 +32,5 @@ class CityMap: public HashMap { // City table used for allinCity command - deriv
 		}
 
 };
+
+#endif
