@@ -28,16 +28,25 @@ class HashMap
 		void insert(const string key, const string value, int& increment);
 		string find(const string key);
 		void remove(const string key);
-		void dump(string fileName, long tableSize);
+		void dump(string fileName);
 
 		int getSize()
 		{
 			return this->size;
 		}
 
-		~HashMap()
+		void clear() // Releases all dynamically acquired memory; called when quitting the program
 		{
-			delete[] this->nodeArray;
+			int cnt = 0;
+			for(int i = 0; i < capacity; i++) {
+				if(nodeArray[i] != nullptr) { // Finds every node, even 'available' ones, since they technically still take up memory
+					delete nodeArray[i];
+					nodeArray[i] = NULL;
+					cnt++;
+				}
+			}
+			delete[] this->nodeArray; // After every node was deleted, we can delete the array itself
+			cout << "Deleted " << cnt << " hotel nodes." << endl;
 		}
 };
 

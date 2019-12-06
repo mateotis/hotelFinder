@@ -13,16 +13,12 @@ void CityMap::insert(const string key, const string value, int& increment) // In
 {
 	long hash = hashCode(key);
 	long ogHash = hash;
-	//cout << key << " : " << hash << endl;
 
 	while(true) {
 		if(nodeArray[hash] == nullptr) { // If we have an empty space, put the node there
-			//cout << "Inserting " << key << " at " << hash << endl;
-			//cout << "Data to be inserted: " << value << endl;
 			list<Hotel> city; // Empty list used to identify the right hash node constructor
 			nodeArray[hash] = new HashNode(key, value, city);
 			size++;
-			//cout << "Inserted " << key << endl;
 			return;
 		}
 		else if(nodeArray[hash]->isAvailable()) { // If we see an available node (aka an empty city list), delete and replace it with this
@@ -42,7 +38,6 @@ void CityMap::insert(const string key, const string value, int& increment) // In
 		else { // If neither, linear probing
 			if(hash == ogHash) {
 				increment++;
-				//cout << key << " can't be put at " << hash << endl;
 			}
 			
 			hash++;
@@ -62,7 +57,7 @@ void CityMap::find(const string key) // The main function for allinCity - finds 
 	while(nodeArray[hash] != nullptr) {
 		count++;
 		if(nodeArray[hash]->getKey() == key && nodeArray[hash]->isAvailable() == false) { // First we find the right node
-			cout << "Comparisons made: " << count << endl;
+			cout << "Comparisons made in city table: " << count << endl;
 			nodeArray[hash]->listPrint(); // Then we print the contents of its list
 			return;
 		}
@@ -81,20 +76,16 @@ void CityMap::find(const string key) // The main function for allinCity - finds 
 
 void CityMap::remove(const string key) { // Removal, like finding, has two steps: first we find the city the hotel is in, then we remove it from its list
 	vector<string> keys = keyMaker(key); // Since we need both hotel and city name separately
-	//string cityName = key.substr(key.find(',') + 1, key.end());
 	long hash = hashCode(keys.at(1));
 	int count = 0;
-	//cout << keys.at(0) << " AND " << keys.at(1) << endl;
 	while(nodeArray[hash] != nullptr) {
-		//cout << "In remove loop" << endl;
 		count++;
-		if(nodeArray[hash]->getKey() == keys.at(1)) {
-			//cout << "Found matching list" << endl;
+		if(nodeArray[hash]->getKey() == keys.at(1) && nodeArray[hash]->isAvailable() == false) {
 			if(nodeArray[hash]->listRemove(keys.at(0)) == true) { // Only report success if we actually found an element to delete
 				size--;
-				cout << "Deleted " + keys.at(0) << endl;
+				cout << "Deleted " + keys.at(0) << " from the city table." << endl;
 			}
-			cout << "Comparisons made: " << count << endl;
+			cout << "Comparisons made in city table: " << count << endl;
 			return;
 		}
 		else {
@@ -102,9 +93,9 @@ void CityMap::remove(const string key) { // Removal, like finding, has two steps
 				hash++;
 			}
 			else {
-				cerr << "Deletion failed. City not found." << endl;
+				cerr << "Deletion failed. City not found in city table." << endl;
 			}
 		}	
 	}
-	cerr << "Deletion failed. Hotel not found." << endl;			
+	cerr << "Deletion failed. Hotel not found in city table." << endl;			
 }

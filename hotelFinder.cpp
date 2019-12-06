@@ -21,19 +21,15 @@ void HashNode::listAdd(Hotel h) { // Add a hotel to a city
 			return;
 		}
 	}
-	city.push_back(h);
-	//cout << "Added hotel " << h.getEntry() << " to list." << endl;
+	city.push_back(h); // Only add it if we didn't already find it
 }
+
 bool HashNode::listRemove(string name) { // Remove a hotel from the city table
 	for(auto it = city.begin(); it != city.end(); ++it) {
-		//cout << "in list remove iteration looking at " << it->getName() << endl;
-		//cout << "looking for " << name << endl;
 		if(it->getName() == name) {
 			city.erase(it);
-			cout << "Removed " << name << " from city table." << endl;
 			if(city.empty() == true) { // If the city list is now empty, make the node available for overwriting
 				this->available = true;
-				//cout << "City empty!" << endl;
 			}
 			return true;
 		}
@@ -41,17 +37,19 @@ bool HashNode::listRemove(string name) { // Remove a hotel from the city table
 	cerr << name << " was not found in the city table." << endl;
 	return false;
 }
+
 void HashNode::listPrint() {
 	for(auto it = city.begin(); it != city.end(); ++it) {
 		cout << it->getEntry() << "\n";
 	}
 	cout << "Number of hotels in city: " << city.size() << endl;
 }
+
 int HashNode::listSize() {
 	return this->city.size();
 }
 
-
+// Utility functions
 bool isPrime(long number) { // Checks whether number is a prime through the square root primality test
 	if(number <= 2) {
 		return false;
@@ -120,7 +118,7 @@ int main(int argc, char* args[])
 		lineCount++;
 	}
 
-    fin.seekg(0, fin.beg); // Reset file iterator to the top
+	fin.seekg(0, fin.beg); // Reset file iterator to the top
     int increment = 0; // Variables that count collisions on insertion
     int incrementCity = 0;
 
@@ -135,21 +133,20 @@ int main(int argc, char* args[])
 		getline(fin,hotelName, ','); // Parse based on commas: hotel name, city name, then the rest of the value
 		getline(fin,cityName, ',');
 		getline(fin,value);
+
 		hotelCityKey = hotelName + ',' + cityName; // Combined key for the main hash table
 		value = hotelCityKey + ',' + value; // The whole entry
-		//cout<<key<<":"<<value<<endl;
 		hotelTable.insert(hotelCityKey,value, increment); // Simultaneous insertions based on different keys
 		cityTable.insert(cityName,value,incrementCity);
 
 	}
 	fin.close();
-    //cout << lineCount << endl;
 
 	// Some post-insert stats
-	cout<<"Hash Map size = "<<hotelTable.getSize()<<endl;
-	cout << "Number of hash increments: " << increment << endl;
-	cout<<"City Map size = "<<cityTable.getSize()<<endl;
-	cout << "Number of hash increments: " << incrementCity << endl;
+	cout<< "Hotel table size: " <<hotelTable.getSize()<<endl;
+	cout << "Number of hash increments in hotel table: " << increment << endl;
+	cout<< "City table size: " <<cityTable.getSize()<<endl;
+	cout << "Number of hash increments in city table: " << incrementCity << endl;
 
 	string input;
 	while(true)
@@ -158,7 +155,9 @@ int main(int argc, char* args[])
 		getline(cin,input);
 		string command, param;
 
-		if(input == "quit") {
+		if(input == "quit") { // On quitting, first release all memory
+			hotelTable.clear();
+			cityTable.clear();
 			break;
 		}
 		else if(input.find(' ') == string::npos) { // All input must have two parts, separated by whitespace: a command word and a parameter
@@ -178,17 +177,14 @@ int main(int argc, char* args[])
 			auto stop = chrono::high_resolution_clock::now();
 			auto duration = chrono::duration_cast<chrono::milliseconds>(stop - start); // Converts recorded time to ms
 			cout << "Time taken: " << duration.count() << " ms" << endl;
-			//cout << param << endl;
 		}
 		else if(command == "add") { // For add, we first create the keys and then insert the entry into both tables
 			vector<string> keys = keyMaker(param);
-			//string value = key + ',' + param;
 			int increment = 0;
 			int incrementCity = 0;
 			string hotelCityKey = keys.at(0) + ',' + keys.at(1);
 			auto start = chrono::high_resolution_clock::now();
 
-			cout << hotelCityKey << endl << param << endl;
 			hotelTable.insert(hotelCityKey,param,increment);
 			cityTable.insert(keys.at(1),param,incrementCity);
 
@@ -197,7 +193,6 @@ int main(int argc, char* args[])
 			cout << "Time taken: " << duration.count() << " ms" << endl;
 		}
 		else if(command == "delete") { // For delete, both tables take the parameter as is, since even our city table needs to know which hotel to delete
-			//vector<string> keys = keyMaker(param);
 			auto start = chrono::high_resolution_clock::now();
 
 			hotelTable.remove(param);
@@ -207,16 +202,16 @@ int main(int argc, char* args[])
 			auto duration = chrono::duration_cast<chrono::milliseconds>(stop - start);
 			cout << "Time taken: " << duration.count() << " ms" << endl;
 		}
-		else if(command == "dump") { // For dump, the table size is passed to know how much to iterate over
+		else if(command == "dump") { // For dump, the param is the file name to dump the database into
 			auto start = chrono::high_resolution_clock::now();
 
-			hotelTable.dump(param, tableSize);
+			hotelTable.dump(param);
 
 			auto stop = chrono::high_resolution_clock::now();
 			auto duration = chrono::duration_cast<chrono::milliseconds>(stop - start);
 			cout << "Time taken: " << duration.count() << " ms" << endl;
 		}
-		else if(command == "allinCity") { // For allinCity, the param (file name) is enough
+		else if(command == "allinCity") { // For allinCity, the param (city name) is enough
 			auto start = chrono::high_resolution_clock::now();
 
 			cityTable.find(param);
