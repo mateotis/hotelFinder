@@ -25,6 +25,14 @@ void CityMap::insert(const string key, const string value, int& increment) // In
 			//cout << "Inserted " << key << endl;
 			return;
 		}
+		else if(nodeArray[hash]->isAvailable()) { // If we see an available node (aka an empty city list), delete and replace it with this
+			delete nodeArray[hash];
+			nodeArray[hash] = NULL;
+			list<Hotel> city;
+			nodeArray[hash] = new HashNode(key, value, city);
+			size++;
+			return;
+		}
 		else if(nodeArray[hash]->getKey() == key) { // If it's not a nullptr, then there must already be a list of hotels there--we have to check if it's the same city, not just the same hash
 			Hotel h(value);
 			nodeArray[hash]->listAdd(h); // We call the node's list addition function
@@ -53,7 +61,7 @@ void CityMap::find(const string key) // The main function for allinCity - finds 
 	int count = 0;
 	while(nodeArray[hash] != nullptr) {
 		count++;
-		if(nodeArray[hash]->getKey() == key) { // First we find the right node
+		if(nodeArray[hash]->getKey() == key && nodeArray[hash]->isAvailable() == false) { // First we find the right node
 			cout << "Comparisons made: " << count << endl;
 			nodeArray[hash]->listPrint(); // Then we print the contents of its list
 			return;
@@ -82,14 +90,11 @@ void CityMap::remove(const string key) { // Removal, like finding, has two steps
 		count++;
 		if(nodeArray[hash]->getKey() == keys.at(1)) {
 			//cout << "Found matching list" << endl;
-			nodeArray[hash]->listRemove(keys.at(0)); // We pass the hotel name to the list remover
-			cout << "Comparisons made: " << count << endl;
-			size--;
-			cout << "Deleted " + keys.at(0) << endl;
-			if(nodeArray[hash]->listSize() == 0) { // If the city list is now empty, we can delete the whole node
-				delete nodeArray[hash];
-				nodeArray[hash] = NULL;
+			if(nodeArray[hash]->listRemove(keys.at(0)) == true) { // Only report success if we actually found an element to delete
+				size--;
+				cout << "Deleted " + keys.at(0) << endl;
 			}
+			cout << "Comparisons made: " << count << endl;
 			return;
 		}
 		else {
@@ -97,7 +102,7 @@ void CityMap::remove(const string key) { // Removal, like finding, has two steps
 				hash++;
 			}
 			else {
-				cerr << "Deletion failed. Hotel not found." << endl;
+				cerr << "Deletion failed. City not found." << endl;
 			}
 		}	
 	}

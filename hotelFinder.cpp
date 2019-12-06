@@ -24,17 +24,22 @@ void HashNode::listAdd(Hotel h) { // Add a hotel to a city
 	city.push_back(h);
 	//cout << "Added hotel " << h.getEntry() << " to list." << endl;
 }
-void HashNode::listRemove(string name) { // Remove a hotel from the city table
+bool HashNode::listRemove(string name) { // Remove a hotel from the city table
 	for(auto it = city.begin(); it != city.end(); ++it) {
 		//cout << "in list remove iteration looking at " << it->getName() << endl;
 		//cout << "looking for " << name << endl;
 		if(it->getName() == name) {
 			city.erase(it);
 			cout << "Removed " << name << " from city table." << endl;
-			return;
+			if(city.empty() == true) { // If the city list is now empty, make the node available for overwriting
+				this->available = true;
+				//cout << "City empty!" << endl;
+			}
+			return true;
 		}
 	}
 	cerr << name << " was not found in the city table." << endl;
+	return false;
 }
 void HashNode::listPrint() {
 	for(auto it = city.begin(); it != city.end(); ++it) {

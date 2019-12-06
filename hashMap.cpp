@@ -36,6 +36,13 @@ void HashMap::insert(const string key, const string value, int& increment) // In
 			//cout << "Inserted " << key << endl;
 			return;
 		}
+		else if(nodeArray[hash]->isAvailable()) {
+			delete nodeArray[hash]; // First we delete the object at the hash index
+			nodeArray[hash] = NULL; // Then we make sure the space is freed (segfaults otherwise)
+			nodeArray[hash] = new HashNode(key, value);
+			size++;
+			return;
+		}
 		else if(nodeArray[hash]->getKey() == key) { // If we run into an entry with the same key, then we don't need to add it again
 			cerr << key << " already in database." << endl;
 			return;
@@ -64,7 +71,7 @@ string HashMap::find(const string key)
 	int count = 0;
 	while(nodeArray[hash] != nullptr) { // Uses the same open addressing scheme as insertion, stops looking upon finding the first empty space
 		count++;
-		if(nodeArray[hash]->getKey() == key) {
+		if(nodeArray[hash]->getKey() == key && nodeArray[hash]->isAvailable() == false) {
 			cout << "Comparisons made: " << count << endl;
 			return nodeArray[hash]->getValue();
 		}
@@ -88,8 +95,9 @@ void HashMap::remove(const string key) {
 		if(nodeArray[hash]->getKey() == key) {
 			cout << "Comparisons made: " << count << endl;
 			//cityTable.remove(key);
-			delete nodeArray[hash]; // First we delete the object at the hash index
-			nodeArray[hash] = NULL; // Then we make sure the space is freed (segfaults otherwise)
+			nodeArray[hash]->makeAvailable();
+			//delete nodeArray[hash]; // First we delete the object at the hash index
+			//nodeArray[hash] = NULL; // Then we make sure the space is freed (segfaults otherwise)
 			size--;
 			cout << "Deleted " + key << endl;
 			return;

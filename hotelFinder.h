@@ -48,6 +48,7 @@ class HashNode // Node that, with an extra variable, works with both hash tables
 		string key; // Either hotel+city or city
 		Hotel value; // Used for the main hash table
 		list<Hotel> city; // Used for the city table
+		bool available; // True if it is a 'removed' node
 
 	public:
 		HashNode(string key, string value) // Node for the regular hash table
@@ -55,12 +56,14 @@ class HashNode // Node that, with an extra variable, works with both hash tables
 			this->key = key;
 			Hotel h(value);
 			this->value = h;
+			available = false;
 		}
 		HashNode(string key, string value, list<Hotel> city) { // Node for the city table, its value is a list of hotels in a city
 			this->key = key;
 			Hotel h(value);
 			this->city = city;
 			this->city.push_back(h);
+			available = false;
 		}
 		string getKey()
 		{
@@ -71,8 +74,14 @@ class HashNode // Node that, with an extra variable, works with both hash tables
 			string content = this->value.getEntry(); // Passed to the Hotel class
 			return content;
 		}
+		bool isAvailable() {
+			return this->available;
+		}
+		void makeAvailable() {
+			this->available = true;
+		}
 		void listAdd(Hotel h);
-		void listRemove(string name);
+		bool listRemove(string name);
 		void listPrint();
 		int listSize();
 
