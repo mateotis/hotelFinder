@@ -30,9 +30,8 @@ class CityMap: public HashMap { // City table used for allinCity command - deriv
 		{
 			return this->size;
 		}
-		void clear()
+		~CityMap()
 		{
-			cout << capacity << endl;
 			int cnt = 0;
 			for(int i = 0; i < capacity; i++) {
 				if(nodeArray[i] != nullptr) {
@@ -42,7 +41,6 @@ class CityMap: public HashMap { // City table used for allinCity command - deriv
 				}
 			}
 			delete[] this->nodeArray;
-			cout << "Deleted " << cnt << " city nodes." << endl;
 		}
 
 };

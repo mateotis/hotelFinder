@@ -19,7 +19,7 @@ long HashMap::hashCode(const string key) // Hashing function
 	return ascSum % capacity; // The compression is achieved by simply taking the modulus with the size of the map
 }
 
-void HashMap::insert(const string key, const string value, int& increment) // Insertion through open addressing
+void HashMap::insert(const string key, const string value, int& increment, bool& insertSuccess) // Insertion through open addressing
 {
 	long hash = hashCode(key);
 	long ogHash = hash; // Used for collision checks
@@ -27,6 +27,7 @@ void HashMap::insert(const string key, const string value, int& increment) // In
 		if(nodeArray[hash] == nullptr) { // If we have an empty space, put the node there
 			nodeArray[hash] = new HashNode(key, value);
 			size++;
+			insertSuccess = true;
 			return;
 		}
 		else if(nodeArray[hash]->isAvailable()) {
@@ -34,6 +35,7 @@ void HashMap::insert(const string key, const string value, int& increment) // In
 			nodeArray[hash] = NULL; // Then we make sure the space is freed (segfaults otherwise)
 			nodeArray[hash] = new HashNode(key, value);
 			size++;
+			insertSuccess = true;
 			return;
 		}
 		else if(nodeArray[hash]->getKey() == key) { // If we run into an entry with the same key, then we don't need to add it again
@@ -45,12 +47,14 @@ void HashMap::insert(const string key, const string value, int& increment) // In
 				increment++;
 			}
 
-
 			if(hash < capacity - 1) {
 				hash++; // Linear open addressing
 			}
-			else { // If we reach the end of the array without an open space, we can't insert it
-				cout << "No place in array for element " << key << endl;
+			else if(hash == capacity - 1 && size != capacity) { // If we reached the end but there's still space in the array, start looking for it from the beginning
+				hash = 0;
+			}
+			else { // If we're at capacity, then we obviously can't insert it
+				cerr << "No place in array for element " << key << endl;
 				return;
 			}
 		}	

@@ -99,14 +99,14 @@ int main(int argc, char* args[])
 
 	if(inputFile == "") {
 		cerr << "Please specify an input file." << endl;
-		exit(-1);
+		return -1;
 	}
 
 	ifstream fin;
 	fin.open(inputFile);
 	if(!fin) {
 		cerr << "Error: file could not be opened." << endl;
-		exit(-1);
+		return -1;
 	}
 
 	string line;
@@ -130,15 +130,19 @@ int main(int argc, char* args[])
 	while(!fin.eof())
 	{
 		string hotelName, cityName, hotelCityKey, value;
+		bool insertSuccess = false; // Passed to the hotel table insert; set to true if element is successfully inserted
+
 		getline(fin,hotelName, ','); // Parse based on commas: hotel name, city name, then the rest of the value
 		getline(fin,cityName, ',');
 		getline(fin,value);
 
 		hotelCityKey = hotelName + ',' + cityName; // Combined key for the main hash table
 		value = hotelCityKey + ',' + value; // The whole entry
-		hotelTable.insert(hotelCityKey,value, increment); // Simultaneous insertions based on different keys
-		cityTable.insert(cityName,value,incrementCity);
 
+		hotelTable.insert(hotelCityKey,value,increment,insertSuccess);
+		if(insertSuccess == true) { // Only try inserting into the city table if we could insert in the hotel table; this ensures sync between the two
+			cityTable.insert(cityName,value,incrementCity);
+		}
 	}
 	fin.close();
 
@@ -155,10 +159,8 @@ int main(int argc, char* args[])
 		getline(cin,input);
 		string command, param;
 
-		if(input == "quit") { // On quitting, first release all memory
-			hotelTable.clear();
-			cityTable.clear();
-			break;
+		if(input == "quit") { // On returning, the destructors for hotelTable and cityTable are called automatically, which releases dynamically acquired memory
+			return 0;
 		}
 		else if(input.find(' ') == string::npos) { // All input must have two parts, separated by whitespace: a command word and a parameter
 			cerr << "Invalid command." << endl;
@@ -180,13 +182,14 @@ int main(int argc, char* args[])
 		}
 		else if(command == "add") { // For add, we first create the keys and then insert the entry into both tables
 			vector<string> keys = keyMaker(param);
-			int increment = 0;
-			int incrementCity = 0;
+			bool insertSuccess = false;
 			string hotelCityKey = keys.at(0) + ',' + keys.at(1);
 			auto start = chrono::high_resolution_clock::now();
 
-			hotelTable.insert(hotelCityKey,param,increment);
-			cityTable.insert(keys.at(1),param,incrementCity);
+			hotelTable.insert(hotelCityKey,param,increment,insertSuccess);
+			if(insertSuccess == true) {
+				cityTable.insert(keys.at(1),param,incrementCity);
+			}
 
 			auto stop = chrono::high_resolution_clock::now();
 			auto duration = chrono::duration_cast<chrono::milliseconds>(stop - start);
@@ -225,6 +228,6 @@ int main(int argc, char* args[])
 		}
 		
 	}
-	exit(0);
+	return 0;
 }
 

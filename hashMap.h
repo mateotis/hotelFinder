@@ -25,7 +25,7 @@ class HashMap
 			this->size = 0;
 		} 
 		long hashCode(const string key);
-		void insert(const string key, const string value, int& increment);
+		void insert(const string key, const string value, int& increment, bool& insertSuccess);
 		string find(const string key);
 		void remove(const string key);
 		void dump(string fileName);
@@ -35,7 +35,7 @@ class HashMap
 			return this->size;
 		}
 
-		void clear() // Releases all dynamically acquired memory; called when quitting the program
+		~HashMap() // Releases all dynamically acquired memory; called when quitting the program
 		{
 			int cnt = 0;
 			for(int i = 0; i < capacity; i++) {
@@ -46,7 +46,6 @@ class HashMap
 				}
 			}
 			delete[] this->nodeArray; // After every node was deleted, we can delete the array itself
-			cout << "Deleted " << cnt << " hotel nodes." << endl;
 		}
 };
 

@@ -39,10 +39,15 @@ void CityMap::insert(const string key, const string value, int& increment) // In
 			if(hash == ogHash) {
 				increment++;
 			}
-			
-			hash++;
-			if(hash >= capacity) {
-				cout << "No place in array for element " << key << endl;
+
+			if(hash < capacity - 1) {
+				hash++;
+			}
+			else if(hash == capacity - 1 && size != capacity) {
+				hash = 0;
+			}
+			else {
+				cerr << "No place in array for element " << key << endl;
 				return;
 			}
 		}	
