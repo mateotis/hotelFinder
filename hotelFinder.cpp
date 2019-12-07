@@ -45,10 +45,6 @@ void HashNode::listPrint() {
 	cout << "Number of hotels in city: " << city.size() << endl;
 }
 
-int HashNode::listSize() {
-	return this->city.size();
-}
-
 // Utility functions
 bool isPrime(long number) { // Checks whether number is a prime through the square root primality test
 	if(number <= 2) {
