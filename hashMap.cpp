@@ -66,6 +66,7 @@ string HashMap::find(const string key)
 {
 	long hash = hashCode(key);
 	int count = 0;
+	bool wrappedAround = false; // Check if we've wrapped around the array once already
 	while(nodeArray[hash] != nullptr) { // Uses the same open addressing scheme as insertion, stops looking upon finding the first empty space
 		count++;
 		if(nodeArray[hash]->getKey() == key && nodeArray[hash]->isAvailable() == false) {
@@ -73,8 +74,12 @@ string HashMap::find(const string key)
 			return nodeArray[hash]->getValue();
 		}
 		else {
-			if(hash < capacity) {
+			if(hash < capacity - 1) {
 				hash++;
+			}
+			else if(hash == capacity - 1 && wrappedAround == false) { // Only wrap around once - if we still can't find it, then it really isn't there
+				hash = 0;
+				wrappedAround = true;
 			}
 			else {
 				return "Hotel not found!";
@@ -87,6 +92,7 @@ string HashMap::find(const string key)
 void HashMap::remove(const string key) {
 	long hash = hashCode(key);
 	int count = 0;
+	bool wrappedAround = false;
 	while(nodeArray[hash] != nullptr) {
 		count++;
 		if(nodeArray[hash]->getKey() == key && nodeArray[hash]->isAvailable() == false) {
@@ -97,12 +103,15 @@ void HashMap::remove(const string key) {
 			return;
 		}
 		else {
-			if(hash < capacity) {
+			if(hash < capacity - 1) {
 				hash++;
+			}
+			else if(hash == capacity - 1 && wrappedAround == false) {
+				hash = 0;
+				wrappedAround = true;
 			}
 			else {
 				cerr << "Deletion failed. Hotel not found in hotel table." << endl;
-				return;
 			}
 		}	
 	}

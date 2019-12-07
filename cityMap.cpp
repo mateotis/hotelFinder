@@ -59,6 +59,7 @@ void CityMap::find(const string key) // The main function for allinCity - finds 
 {
 	long hash = hashCode(key);
 	int count = 0;
+	bool wrappedAround = false;
 	while(nodeArray[hash] != nullptr) {
 		count++;
 		if(nodeArray[hash]->getKey() == key && nodeArray[hash]->isAvailable() == false) { // First we find the right node
@@ -67,8 +68,12 @@ void CityMap::find(const string key) // The main function for allinCity - finds 
 			return;
 		}
 		else {
-			if(hash < capacity) {
+			if(hash < capacity - 1) {
 				hash++;
+			}
+			else if(hash == capacity - 1 && wrappedAround == false) {
+				hash = 0;
+				wrappedAround = true;
 			}
 			else {
 				cerr << "City not found!" << endl;
@@ -83,6 +88,7 @@ void CityMap::remove(const string key) { // Removal, like finding, has two steps
 	vector<string> keys = keyMaker(key); // Since we need both hotel and city name separately
 	long hash = hashCode(keys.at(1));
 	int count = 0;
+	bool wrappedAround = false;
 	while(nodeArray[hash] != nullptr) {
 		count++;
 		if(nodeArray[hash]->getKey() == keys.at(1) && nodeArray[hash]->isAvailable() == false) {
@@ -94,11 +100,16 @@ void CityMap::remove(const string key) { // Removal, like finding, has two steps
 			return;
 		}
 		else {
-			if(hash < capacity) {
+			if(hash < capacity - 1) {
 				hash++;
 			}
+			else if(hash == capacity - 1 && wrappedAround == false) {
+				hash = 0;
+				wrappedAround = true;
+			}
 			else {
-				cerr << "Deletion failed. City not found in city table." << endl;
+				cerr << "Deletion failed. Hotel not found in city table." << endl;
+				return;
 			}
 		}	
 	}
