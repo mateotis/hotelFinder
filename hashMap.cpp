@@ -112,6 +112,7 @@ void HashMap::remove(const string key) {
 			}
 			else {
 				cerr << "Deletion failed. Hotel not found in hotel table." << endl;
+				return;
 			}
 		}	
 	}
