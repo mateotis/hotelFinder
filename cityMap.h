@@ -23,7 +23,7 @@ class CityMap: public HashMap { // City table used for allinCity command - deriv
 			this->capacity = capacity;
 			this->size = 0;
 		}
-		void insert(const string key, const string value, int& increment);
+		void insert(const string key, const string value, int& increment, bool printComps);
 		void find(const string key);
 		void remove(string key);
 		int getSize()

@@ -61,7 +61,7 @@ bool isPrime(long number) { // Checks whether number is a prime through the squa
 }
 
 long nearestPrime(long lineCount) { // Finds the nearest larger prime to a number
-	long tableSize = lineCount*1.333; // Array is made 33.3% larger than the input size to minimise collisions
+	long tableSize = lineCount*1.333 + 1; // Array is made 33.3% larger than the input size to minimise collisions; +1 is added to ensure we find the larger prime
 	while(true) {
 		if(!isPrime(tableSize)) {
 			tableSize++;
@@ -127,6 +127,7 @@ int main(int argc, char* args[])
 	{
 		string hotelName, cityName, hotelCityKey, value;
 		bool insertSuccess = false; // Passed to the hotel table insert; set to true if element is successfully inserted
+		bool printComps = false; // Doesn't print comparison numbers for initial insertions to avoid spam
 
 		getline(fin,hotelName, ','); // Parse based on commas: hotel name, city name, then the rest of the value
 		getline(fin,cityName, ',');
@@ -135,9 +136,9 @@ int main(int argc, char* args[])
 		hotelCityKey = hotelName + ',' + cityName; // Combined key for the main hash table
 		value = hotelCityKey + ',' + value; // The whole entry
 
-		hotelTable.insert(hotelCityKey,value,increment,insertSuccess);
+		hotelTable.insert(hotelCityKey,value,increment,insertSuccess,printComps);
 		if(insertSuccess == true) { // Only try inserting into the city table if we could insert in the hotel table; this ensures sync between the two
-			cityTable.insert(cityName,value,incrementCity);
+			cityTable.insert(cityName,value,incrementCity,printComps);
 		}
 	}
 	fin.close();
@@ -179,12 +180,13 @@ int main(int argc, char* args[])
 		else if(command == "add") { // For add, we first create the keys and then insert the entry into both tables
 			vector<string> keys = keyMaker(param);
 			bool insertSuccess = false;
+			bool printComps = true; // Prints comparison number on manual insertion
 			string hotelCityKey = keys.at(0) + ',' + keys.at(1);
 			auto start = chrono::high_resolution_clock::now();
 
-			hotelTable.insert(hotelCityKey,param,increment,insertSuccess);
+			hotelTable.insert(hotelCityKey,param,increment,insertSuccess,printComps);
 			if(insertSuccess == true) {
-				cityTable.insert(keys.at(1),param,incrementCity);
+				cityTable.insert(keys.at(1),param,incrementCity,printComps);
 			}
 
 			auto stop = chrono::high_resolution_clock::now();

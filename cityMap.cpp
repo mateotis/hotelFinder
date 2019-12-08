@@ -9,15 +9,20 @@
 
 using namespace std;
 
-void CityMap::insert(const string key, const string value, int& increment) // Insertion using both separate chaining and open addressing
+void CityMap::insert(const string key, const string value, int& increment, bool printComps) // Insertion using both separate chaining and open addressing
 {
 	long hash = hashCode(key);
 	long ogHash = hash;
+	int count = 0;
 
 	while(true) {
+		count++;
 		if(nodeArray[hash] == nullptr) { // If we have an empty space, put the node there
 			list<Hotel> city; // Empty list used to identify the right hash node constructor
 			nodeArray[hash] = new HashNode(key, value, city);
+			if(printComps == true) {
+				cout << "Comparisons made in city table: " << count << endl;
+			}
 			size++;
 			return;
 		}
@@ -26,12 +31,18 @@ void CityMap::insert(const string key, const string value, int& increment) // In
 			nodeArray[hash] = NULL;
 			list<Hotel> city;
 			nodeArray[hash] = new HashNode(key, value, city);
+			if(printComps == true) {
+				cout << "Comparisons made in city table: " << count << endl;
+			}
 			size++;
 			return;
 		}
 		else if(nodeArray[hash]->getKey() == key) { // If it's not a nullptr, then there must already be a list of hotels there--we have to check if it's the same city, not just the same hash
 			Hotel h(value);
 			nodeArray[hash]->listAdd(h); // We call the node's list addition function
+			if(printComps == true) {
+				cout << "Comparisons made in city table: " << count << endl;
+			}
 			size++;
 			return;
 		}
@@ -48,6 +59,9 @@ void CityMap::insert(const string key, const string value, int& increment) // In
 			}
 			else {
 				cerr << "No place in array for element " << key << endl;
+				if(printComps == true) {
+					cout << "Comparisons made in city table: " << count << endl;
+				}
 				return;
 			}
 		}	

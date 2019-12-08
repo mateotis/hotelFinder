@@ -33,7 +33,6 @@ class Hotel {
 			entry.erase(0,entry.find(',') + 1);
 		}
 		string getEntry() {
-			//string content = "Name: " + name + '\n' + "City: " + city + '\n' + "Rating: " + rating + '\n' + "Price: " + price + '\n' + "Country: " + country + '\n' + "Address: " + address;
 			string content = name + ',' + city + ',' + rating + ',' + price + ',' + country + ',' + address;
 			return content;
 		}

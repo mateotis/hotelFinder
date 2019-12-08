@@ -25,7 +25,7 @@ class HashMap
 			this->size = 0;
 		} 
 		long hashCode(const string key);
-		void insert(const string key, const string value, int& increment, bool& insertSuccess);
+		void insert(const string key, const string value, int& increment, bool& insertSuccess, bool printComps);
 		string find(const string key);
 		void remove(const string key);
 		void dump(string fileName);
